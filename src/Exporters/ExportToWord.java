@@ -1,5 +1,5 @@
 /* 
- * Copyright 2015 pritchie.
+ * Copyright 2015 cornerpirate.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -44,7 +44,7 @@ import org.docx4j.wml.Text;
 
 /**
  *
- * @author pritchie
+ * @author cornerpirate
  */
 public class ExportToWord {
 

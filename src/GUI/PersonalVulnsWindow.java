@@ -1,5 +1,5 @@
 /* 
- * Copyright 2015 pritchie.
+ * Copyright 2015 cornerpirate.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -55,7 +55,7 @@ import javax.swing.tree.TreePath;
 
 /**
  *
- * @author pritchie
+ * @author cornerpirate
  */
 public class PersonalVulnsWindow extends javax.swing.JFrame {
 
@@ -728,7 +728,7 @@ public class PersonalVulnsWindow extends javax.swing.JFrame {
             url.setText(current.getUrl());
         }
 
-        JLabel error = new JLabel("A valid URL needs to be supplied including the protocol i.e. http://www.secureworks.com");
+        JLabel error = new JLabel("A valid URL needs to be supplied including the protocol i.e. http://www.github.com");
         error.setForeground(Color.red);
         Object[] message = {
             "Description:", description,

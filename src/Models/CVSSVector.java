@@ -1,5 +1,5 @@
 /* 
- * Copyright 2015 pritchie.
+ * Copyright 2015 cornerpirate.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
  * you may not use this file except in compliance with the License.
@@ -21,7 +21,7 @@ import java.text.DecimalFormat;
  * A class that is used to convert between CVSSv2 vector Strings and their
  * scores etc.
  *
- * @author pritchie
+ * @author cornerpirate
  */
 public class CVSSVector {
 
