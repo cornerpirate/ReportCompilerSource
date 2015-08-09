@@ -156,12 +156,14 @@ public class ExportToWord {
             // get and delete the vuln table from the document.
             //List<Object> Tables = getAllElementFromObject(bodyPart, XWPFTable.class);
             //XWPFTable table = (XWPFTable)Tables.get(0);
+            /*
             List<Object> content = bodyPart.getContent();
             Iterator it = content.iterator();
             while (it.hasNext()) {
                 Object obj = it.next();
                 content.remove(obj);
             }
+                    */
 
             bodyPart.addStyledParagraphOfText("Heading2", vuln.getTitle());
 
