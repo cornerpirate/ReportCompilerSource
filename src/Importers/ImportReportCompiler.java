@@ -128,7 +128,13 @@ public class ImportReportCompiler implements ImporterInterface {
                         if (idNode.getNodeType() == Node.ELEMENT_NODE) {
                             String hash = idNode.getAttributes().getNamedItem("hash").getTextContent();
                             String import_tool = idNode.getAttributes().getNamedItem("import_tool").getTextContent();
-                            vuln.setIdentifierFromSaveFile(hash, import_tool);
+                            vuln.setImport_tool(import_tool);
+                            // this hash is a legacy broken from the before time
+                            if (hash.equalsIgnoreCase("24d459a81449d721c8f9a86c2913034")) {
+                                vuln.setIdentifier(); // this replaces the hash with the current MD5(vuln.getTitle());
+                            } else {
+                                vuln.setIdentifierFromSaveFile(hash, import_tool); // this trusts the source tool and hash.
+                            }
                         }
                     }
 
@@ -156,6 +162,13 @@ public class ImportReportCompiler implements ImporterInterface {
                 }
 
             }
+        }
+
+        // for original users with saved personal vulns saved without import tools
+        if (vuln.getImport_tool() == "NULL") {
+            vuln.setImport_tool("ReportCompiler");
+            vuln.setIdentifier();
+            System.out.println(vuln.getTitle() + ": hash: " + vuln.getIDsAsString());
         }
 
         return vuln;

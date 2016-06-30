@@ -17,9 +17,15 @@ package Importers;
 
 import Utils.TreeUtils;
 import java.io.File;
+import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
+ * The beating heart of ReportCompiler is this sexyish importing class. Users
+ * can select one or more files to import at a time and this will work out if
+ * the file is supported by ReportCompiler. If not it will warn the user
+ * Otherwise it does what it says on the tin, it will import and add to the
+ * tree.
  *
  * @author cornerpirate
  */
@@ -28,12 +34,18 @@ public class UniversalFileImporter {
     final NessusV2XMLImporter nv2xml = new NessusV2XMLImporter();
     final ExcelImporter excelim = new ExcelImporter();
     final ImportReportCompiler importrc = new ImportReportCompiler();
-    final BurpImporter burpim = new BurpImporter() ;
-    final SurecheckImporter surecheckim = new SurecheckImporter() ;
-    final QualysCSVImporter qualyscsvim = new QualysCSVImporter() ;
-    
+    final BurpImporter burpim = new BurpImporter();
+    final SurecheckImporter surecheckim = new SurecheckImporter();
+
     public String file_type = null;
 
+    /**
+     * Called before importing to check for the file type. This is where it is
+     * determined as importable or not
+     *
+     * @param importingFile
+     * @return String - representing the tool name or "Unknown"
+     */
     public String getFileType(File importingFile) {
 
         String fileType = "Unknown";
@@ -54,30 +66,27 @@ public class UniversalFileImporter {
             System.out.println("Is a Burp Report XML file");
             file_type = "Burp";
             return file_type;
-        }  else if (surecheckim.isValid(importingFile)) {
+        } else if (surecheckim.isValid(importingFile)) {
             System.out.println("Is a Surecheck XML file");
             file_type = "Surecheck";
             return file_type;
-        } else if (qualyscsvim.isValid(importingFile)) {
-            System.out.println("Qualys CSV file");
-            file_type = "QualysCsv";
-            return file_type;
-        } 
+        }
 
         String message = "Did not understand that file type, cannot import that.";
         String title = "Cannot Import File";
         // go through all the importers we have and see if we can cater for it
-        /*
-        JOptionPane.showMessageDialog(null,
-         message,
-         title,
-         JOptionPane.ERROR_MESSAGE);
-         */
 
-        System.out.println(title);
+        JOptionPane.showMessageDialog(null, message,title,JOptionPane.ERROR_MESSAGE);
+
+        System.out.println("==getFileType():" + title);
         return fileType;
     }
 
+    /**
+     * This is responsible for calling the correct readFile method.
+     * @param importingFile
+     * @return DefaultMutableTreeNode - representing the tree of vulns in the file
+     */
     public DefaultMutableTreeNode readFile(File importingFile) {
 
         DefaultMutableTreeNode root = null;
@@ -95,9 +104,7 @@ public class UniversalFileImporter {
             root = burpim.readFile(importingFile);
         } else if (ftype.equalsIgnoreCase("Surecheck")) {
             root = surecheckim.readFile(importingFile);
-        } else if (ftype.equalsIgnoreCase("QualysCsv")) {
-            root = qualyscsvim.readFile(importingFile);
-        } 
+        }
 
         // Optionally we need to check for existing items in the VulnTree 
         // and merge them in here but for now one file at a time.
@@ -106,7 +113,6 @@ public class UniversalFileImporter {
             return new TreeUtils().sortVulns(root);
         }
         return new DefaultMutableTreeNode("vulns");
-        //return root;
     }
 
 }

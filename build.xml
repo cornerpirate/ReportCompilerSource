@@ -72,111 +72,123 @@
     -->
     
     <target name="-post-jar">
-    <property name="proguard.jar.path" value="proguard.jar" />
+        <property name="proguard.jar.path" value="proguard.jar" />
 
-    <taskdef resource="proguard/ant/task.properties"
+        <taskdef resource="proguard/ant/task.properties"
              classpath="${proguard.jar.path}" />
 
-    <echo message="Obfuscating ${dist.jar}..."/>
-    <mkdir dir="${build.dir}/obfuscated"/>
-    <proguard printmapping="${build.dir}/obfuscated/${application.title}.map"
+        <echo message="Obfuscating ${dist.jar}..."/>
+        <mkdir dir="${build.dir}/obfuscated"/>
+        <proguard printmapping="${build.dir}/obfuscated/${application.title}.map"
               renamesourcefileattribute="SourceFile" ignorewarnings="true">
 
-        <!-- Specify the input jars, output jars, and library jars. -->
+            <!-- Specify the input jars, output jars, and library jars. -->
 
-        <injar  file="${dist.jar}" />
-        <outjar file="${build.dir}/obfuscated/${application.title}.jar" />
+            <injar  file="${dist.jar}" />
+            <outjar file="${build.dir}/obfuscated/${application.title}.jar" />
 
-        <libraryjar path="${javac.classpath}" />          
-        <libraryjar file="${java.home}/lib/rt.jar" />
-        <libraryjar file="${java.home}/lib/jce.jar" />
+            <libraryjar path="${javac.classpath}" />          
+            <libraryjar file="${java.home}/lib/rt.jar" />
+            <libraryjar file="${java.home}/lib/jce.jar" />
 
-        <!-- Keep some useful attributes. -->
+            <!-- Keep some useful attributes. -->
 
        
-        <keepattribute name="InnerClasses" />
-        <keepattribute name="SourceFile" />
-        <keepattribute name="LineNumberTable" />
-        <keepattribute name="Deprecated" />
-        <keepattribute name="*Annotation*" />
-        <keepattribute name="Signature" />
-        <keepattribute name="Exceptions" />
+            <keepattribute name="InnerClasses" />
+            <keepattribute name="SourceFile" />
+            <keepattribute name="LineNumberTable" />
+            <keepattribute name="Deprecated" />
+            <keepattribute name="*Annotation*" />
+            <keepattribute name="Signature" />
+            <keepattribute name="Exceptions" />
 
-        <!-- Preserve all public classes, and their public and protected fields and methods. -->
+            <!-- Preserve all public classes, and their public and protected fields and methods. -->
 
-        <keep access="public">
-            <field  access="public protected" />
-            <method access="public protected" />
-        </keep>
+            <keep access="public">
+                <field  access="public protected" />
+                <method access="public protected" />
+            </keep>
 
-        <!-- Preserve all .class method names. -->
+            <!-- Preserve all .class method names. -->
 
-        <keepclassmembernames access="public">
-            <method type      ="java.lang.Class"
+            <keepclassmembernames access="public">
+                <method type      ="java.lang.Class"
                     name      ="class$"
                     parameters="java.lang.String" />
-            <method type      ="java.lang.Class"
+                <method type      ="java.lang.Class"
                     name      ="class$"
                     parameters="java.lang.String,boolean" />
-        </keepclassmembernames>
+            </keepclassmembernames>
 
-        <!-- Preserve all native method names and the names of their classes. -->
+            <!-- Preserve all native method names and the names of their classes. -->
 
-        <keepclasseswithmembernames>
-            <method access="native" />
-        </keepclasseswithmembernames>
+            <keepclasseswithmembernames>
+                <method access="native" />
+            </keepclasseswithmembernames>
 
-        <!-- Preserve the methods that are required in all enumeration classes. -->
+            <!-- Preserve the methods that are required in all enumeration classes. -->
 
-        <keepclassmembers extends="java.lang.Enum">
-            <method access="public static"
+            <keepclassmembers extends="java.lang.Enum">
+                <method access="public static"
                     type="**[]"
                     name="values"
                     parameters="" />
-            <method access="public static"
+                <method access="public static"
                     type="**"
                     name="valueOf"
                     parameters="java.lang.String" />
-        </keepclassmembers>
+            </keepclassmembers>
 
-        <!-- Explicitly preserve all serialization members. The Serializable
-        interface is only a marker interface, so it wouldn't save them.
-        You can comment this out if your library doesn't use serialization.
-        With this code serializable classes will be backward compatible -->
+            <!-- Explicitly preserve all serialization members. The Serializable
+            interface is only a marker interface, so it wouldn't save them.
+            You can comment this out if your library doesn't use serialization.
+            With this code serializable classes will be backward compatible -->
 
-        <keepnames implements="java.io.Serializable"/>
-        <keepclassmembers implements="java.io.Serializable">
-            <field  access    ="final"
+            <keepnames implements="java.io.Serializable"/>
+            <keepclassmembers implements="java.io.Serializable">
+                <field  access    ="final"
                     type      ="long"
                     name      ="serialVersionUID" />
-            <field  access    ="!static !transient"
+                <field  access    ="!static !transient"
                     name      ="**"/>
-            <field  access    ="!private"
+                <field  access    ="!private"
                     name      ="**"/>
-            <method access    ="!private"
+                <method access    ="!private"
                     name      ="**"/>
-            <method access    ="private"
+                <method access    ="private"
                     type      ="void"
                     name      ="writeObject"
                     parameters="java.io.ObjectOutputStream" />
-            <method access    ="private"
+                <method access    ="private"
                     type      ="void"
                     name      ="readObject"
                     parameters="java.io.ObjectOutputStream" />
-            <method type      ="java.lang.Object"
+                <method type      ="java.lang.Object"
                     name      ="writeReplace"
                     parameters="" />
-            <method type      ="java.lang.Object"
+                <method type      ="java.lang.Object"
                     name      ="readResolve"
                     parameters="" />
-        </keepclassmembers>
+            </keepclassmembers>
 
-        <!-- Your application may contain more items that need to be preserved;
-        typically classes that are dynamically created using Class.forName -->
+            <!-- Your application may contain more items that need to be preserved;
+            typically classes that are dynamically created using Class.forName -->
 
-    </proguard>
-    <copy file="${build.dir}/obfuscated/${application.title}.jar" tofile="${dist.jar}" overwrite="true"/>
-    <delete dir="${build.dir}/obfuscated"/>
-</target>
+        </proguard>
+        <copy file="${build.dir}/obfuscated/${application.title}.jar" tofile="${dist.jar}" overwrite="true"/>
+        <delete dir="${build.dir}/obfuscated"/>
+    
+    
+        <!-- Custom task to create a folder for cve data to go 
+        <dirname property="cvefolder" file="${dist.dir}/cves"/>
+        -->
+        <mkdir dir="${dist.dir}/cves" />
+        <copy todir="${dist.dir}/cves">
+            <fileset dir="${basedir}/cves/">
+                <include name="*.*"/>
+            </fileset>
+        </copy>   
+    
+    </target>
     
 </project>

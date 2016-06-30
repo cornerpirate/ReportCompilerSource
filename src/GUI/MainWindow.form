@@ -120,6 +120,14 @@
             <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="MergeButtonActionPerformed"/>
           </Events>
         </MenuItem>
+        <MenuItem class="javax.swing.JMenuItem" name="LookupCVE">
+          <Properties>
+            <Property name="text" type="java.lang.String" value="Lookup CVE(s)"/>
+          </Properties>
+          <Events>
+            <EventHandler event="actionPerformed" listener="java.awt.event.ActionListener" parameters="java.awt.event.ActionEvent" handler="LookupCVEActionPerformed"/>
+          </Events>
+        </MenuItem>
         <MenuItem class="javax.swing.JMenuItem" name="AddToPersonalVulns">
           <Properties>
             <Property name="text" type="java.lang.String" value="Add to Personal Vulns"/>
