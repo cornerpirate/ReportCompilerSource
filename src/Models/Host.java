@@ -34,20 +34,34 @@ public class Host implements Comparator {
     // A slight fudge in that a "Host" is really a "Service" that has an issue.
     protected String portnumber;
     protected String protocol;
+    protected Vector vulnerabilities;
+
+    
+    public void addVulnerability(Vulnerability vuln) {
+        this.vulnerabilities.add(vuln) ;
+    }
+    public Vector getVulnerabilities() {
+        return vulnerabilities;
+    }
+
+    public void setVulnerabilities(Vector vulnerabilities) {
+        this.vulnerabilities = vulnerabilities;
+    }
 
     public Note getNotes() {
         return note;
     }
 
+    /**
+     * Get a String representing the first three octets with "XXX" as the final.
+     * Not the most advanced subnetting but neat and predictable enough.
+     * @return String - i.e. 192.168.1.XXX
+     */
     public String getSubnet() {
         String i = this.getIp_address();
-        i = i.substring(0, i.lastIndexOf(".")) + ".XXX";
+        i = i.substring(0, i.lastIndexOf(".")+1) + "XXX";
         return i;
     }
-
-//    public InetAddress getSubnetAsInetAddress {
-//        return new InetAddress() ;
-//    }
 
     public void setNotes(Note notes) {
         this.note = notes;

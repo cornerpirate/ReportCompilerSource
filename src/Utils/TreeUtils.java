@@ -21,12 +21,17 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.Enumeration;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.Iterator;
+import java.util.Set;
+import java.util.TreeSet;
 import java.util.Vector;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
 
 /**
+ * This class is used wherever significant operations to either the
+ * vulnerability tree or host tree are needed.
  *
  * @author cornerpirate
  */
@@ -59,7 +64,7 @@ public class TreeUtils {
      * risk.
      *
      * @param root
-     * @returnt
+     * @return
      */
     public DefaultMutableTreeNode sortVulns(DefaultMutableTreeNode root) {
 
@@ -149,7 +154,6 @@ public class TreeUtils {
         Vector existing_vulns = getTreeAsVector(existing_root);
         Vector new_vulns = getTreeAsVector(new_root);
 
-        //DefaultMutableTreeNode newdatastructure = this.getMergeTreeDataStructure(existing_root) ;
         // for each item in the new_root, check if a vuln with the same ID exists in the existing_root
         // If not then add to the existing_root
         // If so then merge the vulns
@@ -187,6 +191,15 @@ public class TreeUtils {
         return this.sortVulns(answer);
     }
 
+    /**
+     * A routine to clash users current tree against their personal vuln
+     * database. When hashes are matched the version from users db will replace
+     * the tool import.
+     *
+     * @param existing_root
+     * @param personal_vulns_root
+     * @return DefaultMutableTreeNode = root node of new version of the tree
+     */
     public DefaultMutableTreeNode autoMergePersonalVulns(DefaultMutableTreeNode existing_root, DefaultMutableTreeNode personal_vulns_root) {
         System.out.println("==TreeUtils=autoMergePersonalVulns");
 
@@ -232,30 +245,7 @@ public class TreeUtils {
 
                     //existing_vulns.remove(oldvuln);
                 }
-                /*
-                 if (oldvuln.containsIdentifier(personalvuln.getIdentifiers()) == true) {
-                 // We have a merge operation to do. Remove the oldvuln from the tree
-                 existing_vulns.remove(oldvuln) ; // Delete it.
-                    
-                 if(vulns_to_merge.containsKey(personalvuln.getTitle())) {
-                 // It already exists so we need to add old vuln to the map
-                 Vector vulns = (Vector)vulns_to_merge.remove(personalvuln.getTitle()) ; // remove it
-                 vulns.add(oldvuln); // Add oldvuln to the vector
-                 vulns_to_merge.put(personalvuln.getTitle(), vulns) ; // put it back in the HashMap
-                 System.out.println("== Found additional vuln to merge added that:\n\t" + vulns) ;
-                        
-                 } else {
-                 // It doesn't exist so we add both the old vuln and the personal vuln
-                 Vector vulns = new Vector() ; // Create new vector
-                 vulns.add(personalvuln) ; // add the two vulns
-                 vulns.add(oldvuln);
-                 vulns_to_merge.put(personalvuln.getTitle(), vulns) ; // put it in the HashMap.
-                 System.out.println("== Found a vuln to merge, added it to the list:\n\t" + vulns) ;
-                 }
-                 }
-                 */
             }
-
         }
 
         // Merge the ones that need merging
@@ -268,7 +258,6 @@ public class TreeUtils {
             System.out.println("\tKey: " + key);
             System.out.println("\t" + vulns);
             Vulnerability personal = (Vulnerability) vulns.get(0);
-            //System.out.println("Personal: " + personal) ;
             // For all other vulns in this merge operation we need to get the affected hosts
             for (int i = 1; i <= vulns.size() - 1; i++) {
                 Vulnerability avuln = (Vulnerability) vulns.get(i);
@@ -292,43 +281,6 @@ public class TreeUtils {
         // sort by risk and return them
         return this.sortVulns(answer);
     }
-    /*
-
-     HashMap new_tree = getTreeAsHashMap(new_root);
-
-     Iterator it = new_tree.keySet().iterator();
-     while (it.hasNext()) {
-     Object key = it.next();
-     String key_str = (String) key;
-
-     if (existing_tree.containsKey(key_str) == false) {
-     // This vuln is news to the existing tree so add the vuln to the hashmap
-     Vulnerability vuln = (Vulnerability) new_tree.get(key);
-     existing_tree.put(key_str, vuln);
-     } else {
-     // This vuln already existed so we need to merge the affected hosts
-
-     // remove the vuln from existing tree because we need to update it and put it back
-     Vulnerability existing = (Vulnerability) existing_tree.remove(key_str);
-     // use new_tree.get to prevent a java.util.ConcurrentModificationException 
-     Vulnerability newvuln = (Vulnerability) new_tree.get(key_str);
-
-     // add the affected hosts from new vuln to existing
-     existing.addAffectedHosts(newvuln.getAffectedHosts());
-
-     // add existing back to existing_tree
-     existing_tree.put(key, existing);
-     }
-
-     }
-
-     // Convert HashMap back to DefaultMutableTreeNode
-     DefaultMutableTreeNode answer = convertHashMapToTree(existing_tree);
-     // sort the answer and return it
-     return this.sortVulns(answer);
-     //return new_root;
-     }
-     */
 
     public DefaultMutableTreeNode convertHashMapToTree(HashMap map) {
         DefaultMutableTreeNode root = new DefaultMutableTreeNode("vulns");
@@ -341,6 +293,13 @@ public class TreeUtils {
         return root;
     }
 
+    /**
+     * Removes the red highlighting from every node in the tree. Highlighting is
+     * added when a node matches a search done using the tree grep feature. To
+     * call this routine the user has to remove the filter completely.
+     *
+     * @param root
+     */
     public void clearHighlighting(DefaultMutableTreeNode root) {
         Enumeration enums = root.children();
         while (enums.hasMoreElements()) {
@@ -355,11 +314,11 @@ public class TreeUtils {
 
     /**
      * Loops through the children in the tree and modifies all instances of the
-     * hostname
+     * hostname.
      *
-     * @param root
-     * @param previous
-     * @param modified
+     * @param root - tree to search
+     * @param previous - hostname before change
+     * @param modified - version to change to
      */
     public void modifyHostname(DefaultMutableTreeNode root, Host previous, Host modified) {
         Enumeration enums = root.children();
@@ -374,6 +333,14 @@ public class TreeUtils {
         }
     }
 
+    /**
+     * Clashes the vulnerability IDs stored within vulnerability one and two. If
+     * any ids match this returns true.
+     *
+     * @param one
+     * @param two
+     * @return
+     */
     public boolean vulnerabilityContainsAnyIds(Vulnerability one, Vulnerability two) {
         HashMap hm1 = one.getIdentifiers();
         HashMap hm2 = two.getIdentifiers();
@@ -387,6 +354,16 @@ public class TreeUtils {
         return false;
     }
 
+    /**
+     * This checks if it is OK to add a vulnerability to the personal vulns
+     * file. Specifically it is checking if a vuln in your database exists
+     * already with a vulnerability identifier. They need to be unique in your
+     * personal vulns.
+     *
+     * @param personal_vulns_root
+     * @param vuln
+     * @return true = Safe to go on, false = nope, nope, nope!
+     */
     public boolean OkToaddToPersonalVulns(DefaultMutableTreeNode personal_vulns_root, Vulnerability vuln) {
 
         Enumeration enums = personal_vulns_root.children();
@@ -410,108 +387,143 @@ public class TreeUtils {
         return true;
     }
 
+    /**
+     * This creates a copy of the vulnerability tree to display issues by host
+     * instead. It returns a a DefaultMutableTreeNode which is the root node of
+     * the host view tree.
+     *
+     * @param vulnRoot
+     * @return DefaultMutableTreeNode - root node for hosts view
+     */
     public DefaultMutableTreeNode convertVulnViewToHostView(DefaultMutableTreeNode vulnRoot) {
         DefaultMutableTreeNode hostRoot = new DefaultMutableTreeNode("hosts");
-        // id = ip; value=vector of Vulnerabilities
-        HashMap hosts = new HashMap();
+
+        Set<Vulnerability> vulns = new HashSet<>();
+        Set<String> hosts = new HashSet<>();
+
         // Vector subnets
-        Vector subnets = new Vector() ;
-        
-        // Convert vulns to hash map of hosts with issues
+        Set<String> subnets = new TreeSet<>();
+
+        // Loop through vulnerabilities tree and compile a list of subnets.
         Enumeration enums = vulnRoot.children();
         while (enums.hasMoreElements()) {
             DefaultMutableTreeNode node = (DefaultMutableTreeNode) enums.nextElement();
             Object obj = node.getUserObject();
             if (obj instanceof Vulnerability) {
                 Vulnerability vuln = (Vulnerability) obj;
-                
-                Vector affected = vuln.getAffectedHosts();
-                Enumeration aff_enums = affected.elements();
-                while (aff_enums.hasMoreElements()) {
-                    Host hst = (Host) aff_enums.nextElement();
-                    if(subnets.contains(hst.getSubnet())==false) {
-                        System.out.println("Added Subnet: " + hst.getSubnet()) ;
-                        subnets.add(hst.getSubnet()) ;
+                Vector affected_hosts = vuln.getAffectedHosts();
+                Enumeration hosts_enum = affected_hosts.elements();
+                while (hosts_enum.hasMoreElements()) {
+                    Host host = (Host) hosts_enum.nextElement();
+                    subnets.add(host.getSubnet());
+                    // Add IP address to list of hosts.
+                    hosts.add(host.getIp_address());
+                }
+            }
+        }
+
+        // Create a HashMap of Hosts
+        Iterator it = subnets.iterator();
+        while (it.hasNext()) {
+            String snet = (String) it.next();
+            DefaultMutableTreeNode subnet_node = new DefaultMutableTreeNode(snet);
+
+            // loop through vulns and their affected hosts.
+            // If affected host is in subnet add it and then all its vulnerabilities.
+            Iterator it2 = hosts.iterator();
+            while (it2.hasNext()) {
+                String ip = (String) it2.next();
+                Host tmp = new Host();
+                tmp.setIp_address(ip);
+                // Check to see if this IP was in this subnet
+                if (tmp.getSubnet().equals(snet)) {
+                    DefaultMutableTreeNode host_node = new DefaultMutableTreeNode(tmp);
+
+                    Vector vulns_for_host = getVulnsForIP(ip, vulnRoot);
+                    System.out.println("vulns_for_host: " + vulns_for_host.size());
+                    Enumeration vulns_enum = vulns_for_host.elements();
+                    while (vulns_enum.hasMoreElements()) {
+                        Vulnerability vuln = (Vulnerability) vulns_enum.nextElement();
+                        DefaultMutableTreeNode vuln_node = new DefaultMutableTreeNode(vuln);
+                        host_node.add(vuln_node);
                     }
-                    
-                    if (hosts.containsKey(hst.getIp_address())) {
-                        // already contains the host so get the vector of vulns and then add it
-                        Vector vulns = (Vector) hosts.remove(hst.getIp_address());
-                        vulns.add(vuln);
-                        // put it back in then!
-                        hosts.put(hst.getIp_address(), vulns);
-                    } else {
-                        // host doesn't exist so add it
-                        Vector vulns = new Vector();
-                        vulns.add(vuln);
-                        hosts.put(hst.getIp_address(), vulns);
+                    // Get all vulnerabilities for this host
+                    // Add host_node to subnet_node
+                    subnet_node.add(host_node);
+                }
+
+            }
+
+            // Add to hosts tree
+            hostRoot.add(subnet_node);
+        }
+
+        return hostRoot;
+    }
+
+    /**
+     * Take a vuln tree and an IP and find Vulnerabilities affecting that host
+     *
+     * @param ip
+     * @param vulnTreeRoot
+     * @return
+     */
+    public Vector getVulnsForIP(String ip, DefaultMutableTreeNode vulnRoot) {
+        Vector answers = new Vector();
+
+        // Loop through vulnerabilities tree and compile a list of subnets.
+        Enumeration enums = vulnRoot.children();
+        while (enums.hasMoreElements()) {
+            DefaultMutableTreeNode node = (DefaultMutableTreeNode) enums.nextElement();
+            Object obj = node.getUserObject();
+            if (obj instanceof Vulnerability) {
+                Vulnerability vuln = (Vulnerability) obj;
+                Vector affected_hosts = vuln.getAffectedHosts();
+                Enumeration hosts_enum = affected_hosts.elements();
+                while (hosts_enum.hasMoreElements()) {
+                    Host host = (Host) hosts_enum.nextElement();
+                    // Check if this affected host is in the list
+                    if (ip.equalsIgnoreCase(host.getIp_address())) {
+                        //System.out.println(ip + ":" + vuln.toString());
+                        answers.add(vuln);
                     }
                 }
             }
         }
-        
-        // sort the subnets
-        //InetAddressComparator comparator = new InetAddressComparator() ;
-        Collections.sort(subnets);
-        //subnets.sort(ipComparator);
-        
-        // Put the subnets into the tree.
-        Enumeration subnets_enum = subnets.elements() ;
-        while(subnets_enum.hasMoreElements()) {
-            String subnet = (String)subnets_enum.nextElement() ;
-            DefaultMutableTreeNode subnet_node = new DefaultMutableTreeNode(subnet);
-            hostRoot.add(subnet_node);
-        }
-        
-        
-//        // Convert HashMap to tree for the answer
-//        Iterator it = hosts.keySet().iterator() ;
-//        while(it.hasNext()) {
-//            String id = (String)it.next();
-//            Vector vulns = (Vector)hosts.get(id);
-//            DefaultMutableTreeNode hostNode = new DefaultMutableTreeNode(id) ;
-//            enums = vulns.elements() ; // reusing variable name since we are done with the previous values
-//            while(enums.hasMoreElements()) {
-//                Vulnerability vuln = (Vulnerability)enums.nextElement();
-//                DefaultMutableTreeNode vulnNode = new DefaultMutableTreeNode(vuln) ;
-//                hostNode.add(vulnNode);
-//            }
-//            hostRoot.add(hostNode);
-//        }
 
-        return hostRoot;
+        return answers;
     }
-    
+
     public HashMap getAllAffectedHosts(DefaultMutableTreeNode vulnTreeRoot) {
-        
+
         // key=port:protocol, value=vector(hosts)
-        HashMap hosts = new HashMap() ;
-        Enumeration enums = vulnTreeRoot.children() ;
-        while(enums.hasMoreElements()) {
-            Object obj = enums.nextElement() ;
-            if(obj instanceof Vulnerability) {
-                Vulnerability vuln = (Vulnerability)obj;
-                Enumeration hosts_enum = vuln.getAffectedHosts().elements() ;
-                while(hosts_enum.hasMoreElements()){
-                    Object obj2 = hosts_enum.nextElement() ;
-                    if(obj2 instanceof Host) {
-                        Host host = (Host)obj2 ;
-                        String service = host.getPortnumber() + "/" + host.getProtocol() ;
-                        if(hosts.containsKey(service)) {
+        HashMap hosts = new HashMap();
+        Enumeration enums = vulnTreeRoot.children();
+        while (enums.hasMoreElements()) {
+            Object obj = enums.nextElement();
+            if (obj instanceof Vulnerability) {
+                Vulnerability vuln = (Vulnerability) obj;
+                Enumeration hosts_enum = vuln.getAffectedHosts().elements();
+                while (hosts_enum.hasMoreElements()) {
+                    Object obj2 = hosts_enum.nextElement();
+                    if (obj2 instanceof Host) {
+                        Host host = (Host) obj2;
+                        String service = host.getPortnumber() + "/" + host.getProtocol();
+                        if (hosts.containsKey(service)) {
                             // Already exists, remove the vector
-                            Vector vec = (Vector)hosts.remove(service) ;
-                            vec.add(host) ;
+                            Vector vec = (Vector) hosts.remove(service);
+                            vec.add(host);
                             hosts.put(service, vec);
                         } else {
                             // Doesn't exist, just fire away matey.
                             hosts.put(service, new Vector().add(host));
                         }
-                        
+
                     }
                 }
             }
         }
-        return hosts ;
+        return hosts;
     }
-    
+
 }

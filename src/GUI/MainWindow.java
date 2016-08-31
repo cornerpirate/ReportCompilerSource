@@ -183,6 +183,7 @@ public class MainWindow extends javax.swing.JFrame {
         MainScreenBottomPanel = new javax.swing.JPanel();
         jLabel20 = new javax.swing.JLabel();
         VulnTreeFilter = new javax.swing.JTextField();
+        ExtraInfoLabel = new javax.swing.JLabel();
         jSplitPane2 = new javax.swing.JSplitPane();
         ViewModeTabPane = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -472,6 +473,9 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        ExtraInfoLabel.setFont(ExtraInfoLabel.getFont().deriveFont(ExtraInfoLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        ExtraInfoLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
         javax.swing.GroupLayout MainScreenBottomPanelLayout = new javax.swing.GroupLayout(MainScreenBottomPanel);
         MainScreenBottomPanel.setLayout(MainScreenBottomPanelLayout);
         MainScreenBottomPanelLayout.setHorizontalGroup(
@@ -481,15 +485,21 @@ public class MainWindow extends javax.swing.JFrame {
                 .addComponent(jLabel20)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(VulnTreeFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(920, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 354, Short.MAX_VALUE)
+                .addComponent(ExtraInfoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 556, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         MainScreenBottomPanelLayout.setVerticalGroup(
             MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(MainScreenBottomPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel20)
-                    .addComponent(VulnTreeFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(MainScreenBottomPanelLayout.createSequentialGroup()
+                        .addComponent(ExtraInfoLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(20, 20, 20))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel20)
+                        .addComponent(VulnTreeFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -959,9 +969,17 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_ImportScanScreenWindowActivated
 
+    /**
+     * The vulnTree has had a selection event fire. This will find the last
+     * selected node and display that on the right pane. It will also update the
+     * count of selected node label at the bottom if more than one has been
+     * selected.
+     *
+     * @param evt
+     */
     private void VulnTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_VulnTreeValueChanged
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) VulnTree.getLastSelectedPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) this.VulnTree.getLastSelectedPathComponent();
         if (node == null) {
             return;
         }
@@ -969,10 +987,10 @@ public class MainWindow extends javax.swing.JFrame {
         if (node.isLeaf() && obj instanceof Vulnerability) {
             // this is a vulnerability we should update the UI to show the contents
             showVulnerability((Vulnerability) obj);
-        } else {
-            // Clear the UI
         }
 
+        int number_of_nodes = this.VulnTree.getSelectionCount();
+        this.ExtraInfoLabel.setText("Number of nodes selected: " + number_of_nodes);
 
     }//GEN-LAST:event_VulnTreeValueChanged
 
@@ -1497,6 +1515,15 @@ public class MainWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jScrollPane4KeyPressed
 
+    /**
+     * This increases the font size up to a range of 30. It was smaller but then
+     * I saw a 4k monitor and found that java does *not* scale well at all. Best
+     * solution seemed to be to simply allow a more generous text size.
+     *
+     * This also is saved in the properties file and persists on next run
+     *
+     * @param evt
+     */
     private void increaseFontActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_increaseFontActionPerformed
         System.out.println("Increase Font Selected");
         // Get the current size from the title.
@@ -1505,7 +1532,7 @@ public class MainWindow extends javax.swing.JFrame {
         System.out.println("The current font size was: " + currentsize);
         int newsize = currentsize + 2;
         System.out.println("The new size looks a bit like: " + newsize);
-        if (newsize <= 20) {
+        if (newsize <= 30) {
 
             // Save this into the preferences
             this.properties.setProperty("Font_Size", newsize + "");
@@ -1514,12 +1541,18 @@ public class MainWindow extends javax.swing.JFrame {
             helper.setFontSize(currentfont, this.getRootPane());
 
         } else {
-            System.out.println("Maximum font size is 20");
+            System.out.println("Maximum font size is 30");
         }
 
     }//GEN-LAST:event_increaseFontActionPerformed
 
-
+    /**
+     * Reduces the font size to a minimum of 10.
+     *
+     * This is also saved in the properties file and persists on next run
+     *
+     * @param evt
+     */
     private void decreaseFontActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decreaseFontActionPerformed
         System.out.println("Decrease Font Selected");
         // Get the current size from the title.
@@ -1595,6 +1628,8 @@ public class MainWindow extends javax.swing.JFrame {
                 DefaultTreeModel dtm = ((DefaultTreeModel) this.HostTree.getModel());
                 dtm.setRoot(hostRoot);
                 dtm.reload(hostRoot);
+                // Expand all nodes to make everything visible
+                new TreeUtils().expandAll(this.HostTree);
                 // Show the host view card
                 cl.show(RightPanelCardLayout, "hostView");
             }
@@ -1918,6 +1953,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JMenuItem EditHostname;
     private javax.swing.JMenuItem EditReferenceOption;
     private javax.swing.JButton EditRiskButton;
+    private javax.swing.JLabel ExtraInfoLabel;
     private javax.swing.JTextField FileSize;
     private javax.swing.JTextField FileType;
     private javax.swing.JTree HostTree;
