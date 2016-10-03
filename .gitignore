@@ -1,0 +1,7 @@
+build/
+dist/
+*.class
+*.sw[op]
+*~
+*.jar
+*.log
