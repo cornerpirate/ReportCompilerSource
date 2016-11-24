@@ -19,11 +19,13 @@ import Exporters.ExportToExcel;
 import Exporters.SaveFileExporter;
 import Importers.ImportReportCompiler;
 import Importers.UniversalFileImporter;
+import Models.CVE;
 import Models.Host;
 import Models.ImportFile;
 import Models.Reference;
 import Models.Vulnerability;
 import Utils.AffectedHostsTableModel;
+import Utils.CVEUtils;
 import Utils.Helper;
 import Utils.TreeUtils;
 import Utils.VulnDescriptionDocumentListener;
@@ -33,6 +35,7 @@ import Views.VulnerabilityViewTreeCellRenderer;
 import WorkerThreads.ImportScanTask;
 import java.awt.Color;
 import java.awt.Component;
+import java.awt.Desktop;
 import java.awt.Font;
 import java.awt.event.ActionEvent;
 import java.awt.event.KeyEvent;
@@ -42,6 +45,7 @@ import java.beans.PropertyChangeListener;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
@@ -49,6 +53,7 @@ import java.net.MalformedURLException;
 import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.Enumeration;
+import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
@@ -81,6 +86,8 @@ import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
 import jxl.write.WriteException;
+import org.apache.commons.csv.CSVFormat;
+import org.apache.commons.csv.CSVPrinter;
 
 /**
  *
@@ -150,6 +157,7 @@ public class MainWindow extends javax.swing.JFrame {
         ProgressBar = new javax.swing.JProgressBar();
         VulnTreeContextMenu = new javax.swing.JPopupMenu();
         MergeButton = new javax.swing.JMenuItem();
+        LookupCVE = new javax.swing.JMenuItem();
         AddToPersonalVulns = new javax.swing.JMenuItem();
         ClearHash = new javax.swing.JMenuItem();
         jSeparator1 = new javax.swing.JPopupMenu.Separator();
@@ -175,6 +183,7 @@ public class MainWindow extends javax.swing.JFrame {
         MainScreenBottomPanel = new javax.swing.JPanel();
         jLabel20 = new javax.swing.JLabel();
         VulnTreeFilter = new javax.swing.JTextField();
+        ExtraInfoLabel = new javax.swing.JLabel();
         jSplitPane2 = new javax.swing.JSplitPane();
         ViewModeTabPane = new javax.swing.JTabbedPane();
         jScrollPane1 = new javax.swing.JScrollPane();
@@ -306,6 +315,14 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
         VulnTreeContextMenu.add(MergeButton);
+
+        LookupCVE.setText("Lookup CVE(s)");
+        LookupCVE.addActionListener(new java.awt.event.ActionListener() {
+            public void actionPerformed(java.awt.event.ActionEvent evt) {
+                LookupCVEActionPerformed(evt);
+            }
+        });
+        VulnTreeContextMenu.add(LookupCVE);
 
         AddToPersonalVulns.setText("Add to Personal Vulns");
         AddToPersonalVulns.addActionListener(new java.awt.event.ActionListener() {
@@ -456,6 +473,9 @@ public class MainWindow extends javax.swing.JFrame {
             }
         });
 
+        ExtraInfoLabel.setFont(ExtraInfoLabel.getFont().deriveFont(ExtraInfoLabel.getFont().getStyle() | java.awt.Font.BOLD));
+        ExtraInfoLabel.setHorizontalAlignment(javax.swing.SwingConstants.RIGHT);
+
         javax.swing.GroupLayout MainScreenBottomPanelLayout = new javax.swing.GroupLayout(MainScreenBottomPanel);
         MainScreenBottomPanel.setLayout(MainScreenBottomPanelLayout);
         MainScreenBottomPanelLayout.setHorizontalGroup(
@@ -465,15 +485,21 @@ public class MainWindow extends javax.swing.JFrame {
                 .addComponent(jLabel20)
                 .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.UNRELATED)
                 .addComponent(VulnTreeFilter, javax.swing.GroupLayout.PREFERRED_SIZE, 174, javax.swing.GroupLayout.PREFERRED_SIZE)
-                .addContainerGap(920, Short.MAX_VALUE))
+                .addPreferredGap(javax.swing.LayoutStyle.ComponentPlacement.RELATED, 354, Short.MAX_VALUE)
+                .addComponent(ExtraInfoLabel, javax.swing.GroupLayout.PREFERRED_SIZE, 556, javax.swing.GroupLayout.PREFERRED_SIZE)
+                .addContainerGap())
         );
         MainScreenBottomPanelLayout.setVerticalGroup(
             MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.LEADING)
             .addGroup(MainScreenBottomPanelLayout.createSequentialGroup()
                 .addContainerGap()
-                .addGroup(MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
-                    .addComponent(jLabel20)
-                    .addComponent(VulnTreeFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE))
+                .addGroup(MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.TRAILING, false)
+                    .addGroup(MainScreenBottomPanelLayout.createSequentialGroup()
+                        .addComponent(ExtraInfoLabel, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE)
+                        .addGap(20, 20, 20))
+                    .addGroup(javax.swing.GroupLayout.Alignment.LEADING, MainScreenBottomPanelLayout.createParallelGroup(javax.swing.GroupLayout.Alignment.BASELINE)
+                        .addComponent(jLabel20)
+                        .addComponent(VulnTreeFilter, javax.swing.GroupLayout.PREFERRED_SIZE, javax.swing.GroupLayout.DEFAULT_SIZE, javax.swing.GroupLayout.PREFERRED_SIZE)))
                 .addContainerGap(javax.swing.GroupLayout.DEFAULT_SIZE, Short.MAX_VALUE))
         );
 
@@ -943,9 +969,17 @@ public class MainWindow extends javax.swing.JFrame {
         }
     }//GEN-LAST:event_ImportScanScreenWindowActivated
 
+    /**
+     * The vulnTree has had a selection event fire. This will find the last
+     * selected node and display that on the right pane. It will also update the
+     * count of selected node label at the bottom if more than one has been
+     * selected.
+     *
+     * @param evt
+     */
     private void VulnTreeValueChanged(javax.swing.event.TreeSelectionEvent evt) {//GEN-FIRST:event_VulnTreeValueChanged
 
-        DefaultMutableTreeNode node = (DefaultMutableTreeNode) VulnTree.getLastSelectedPathComponent();
+        DefaultMutableTreeNode node = (DefaultMutableTreeNode) this.VulnTree.getLastSelectedPathComponent();
         if (node == null) {
             return;
         }
@@ -953,10 +987,10 @@ public class MainWindow extends javax.swing.JFrame {
         if (node.isLeaf() && obj instanceof Vulnerability) {
             // this is a vulnerability we should update the UI to show the contents
             showVulnerability((Vulnerability) obj);
-        } else {
-            // Clear the UI
         }
 
+        int number_of_nodes = this.VulnTree.getSelectionCount();
+        this.ExtraInfoLabel.setText("Number of nodes selected: " + number_of_nodes);
 
     }//GEN-LAST:event_VulnTreeValueChanged
 
@@ -1179,7 +1213,6 @@ public class MainWindow extends javax.swing.JFrame {
         //ManageAffectedHosts.setVisible(true) ;
 
         // Old way of doing it
-              
         JTextField ip_address = new JTextField();
         JTextField hostname = new JTextField();
         JTextField port_number = new JTextField();
@@ -1219,7 +1252,6 @@ public class MainWindow extends javax.swing.JFrame {
             }
 
         }
-
 
     }
     private void AddHostsButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_AddHostsButtonActionPerformed
@@ -1483,6 +1515,15 @@ public class MainWindow extends javax.swing.JFrame {
 
     }//GEN-LAST:event_jScrollPane4KeyPressed
 
+    /**
+     * This increases the font size up to a range of 30. It was smaller but then
+     * I saw a 4k monitor and found that java does *not* scale well at all. Best
+     * solution seemed to be to simply allow a more generous text size.
+     *
+     * This also is saved in the properties file and persists on next run
+     *
+     * @param evt
+     */
     private void increaseFontActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_increaseFontActionPerformed
         System.out.println("Increase Font Selected");
         // Get the current size from the title.
@@ -1491,7 +1532,7 @@ public class MainWindow extends javax.swing.JFrame {
         System.out.println("The current font size was: " + currentsize);
         int newsize = currentsize + 2;
         System.out.println("The new size looks a bit like: " + newsize);
-        if (newsize <= 20) {
+        if (newsize <= 30) {
 
             // Save this into the preferences
             this.properties.setProperty("Font_Size", newsize + "");
@@ -1500,12 +1541,18 @@ public class MainWindow extends javax.swing.JFrame {
             helper.setFontSize(currentfont, this.getRootPane());
 
         } else {
-            System.out.println("Maximum font size is 20");
+            System.out.println("Maximum font size is 30");
         }
 
     }//GEN-LAST:event_increaseFontActionPerformed
 
-
+    /**
+     * Reduces the font size to a minimum of 10.
+     *
+     * This is also saved in the properties file and persists on next run
+     *
+     * @param evt
+     */
     private void decreaseFontActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_decreaseFontActionPerformed
         System.out.println("Decrease Font Selected");
         // Get the current size from the title.
@@ -1581,6 +1628,8 @@ public class MainWindow extends javax.swing.JFrame {
                 DefaultTreeModel dtm = ((DefaultTreeModel) this.HostTree.getModel());
                 dtm.setRoot(hostRoot);
                 dtm.reload(hostRoot);
+                // Expand all nodes to make everything visible
+                new TreeUtils().expandAll(this.HostTree);
                 // Show the host view card
                 cl.show(RightPanelCardLayout, "hostView");
             }
@@ -1603,18 +1652,18 @@ public class MainWindow extends javax.swing.JFrame {
         if (!(obj instanceof Vulnerability)) {
             return; // here be monsters, most likely in the merge tree
         }
-        
+
         Vulnerability vuln = (Vulnerability) obj;
-        vuln.deleteAllIds() ;
+        vuln.deleteAllIds();
 
     }//GEN-LAST:event_ClearHashActionPerformed
 
     private void ManageAffectedHostsWindowOpened(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_ManageAffectedHostsWindowOpened
-        
-        System.out.println("==ManageAffectedHostsWindowOpened") ;
+
+        System.out.println("==ManageAffectedHostsWindowOpened");
         // Scrape through the vuln tree to find a unique list of hosts and ports.
-        
-        
+
+
     }//GEN-LAST:event_ManageAffectedHostsWindowOpened
 
     private void exitButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_exitButtonActionPerformed
@@ -1622,6 +1671,56 @@ public class MainWindow extends javax.swing.JFrame {
         this.dispose();
         System.exit(0);
     }//GEN-LAST:event_exitButtonActionPerformed
+
+    /**
+     * Writes a row of data to a CSV file. For use with exporting CVE data
+     * mainly.
+     *
+     * @param file
+     * @param data
+     * @param recordSeparator
+     * @throws Exception
+     */
+    public void writeCSVLine(File file, String[] data) throws Exception {
+        FileWriter writer = new FileWriter(file, true);
+        CSVFormat csvFileFormat = CSVFormat.DEFAULT.withRecordSeparator(System.getProperty("line.separator"));
+        CSVPrinter csvFilePrinter = new CSVPrinter(writer, csvFileFormat);
+        csvFilePrinter.printRecord(data);
+        writer.flush();
+        writer.close();
+        csvFilePrinter.close();
+    }
+
+    private void LookupCVEActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_LookupCVEActionPerformed
+
+        File save_file = null;
+        // Ask user where they want to save file
+        boolean proceed = true;
+        int returnVal = this.fileChooser.showSaveDialog(this);
+
+        if (returnVal == JFileChooser.APPROVE_OPTION) {
+
+            save_file = fileChooser.getSelectedFile();
+            System.out.println("==LookupCVEActionPerformed(): " + save_file);
+
+            if (save_file.exists() == true) {
+
+                int response = JOptionPane.showConfirmDialog(null, "Are you sure you want to replace existing file?", "Confirm",
+                        JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+                if (response == JOptionPane.NO_OPTION) {
+                    proceed = false;
+                }
+            }
+
+            if (proceed == true) {
+
+                save_file.delete(); // wipe original
+                handleCVELookup(save_file);
+
+            }
+
+        }
+    }//GEN-LAST:event_LookupCVEActionPerformed
 
     public void addReference(JTree tree, JList list, Reference current) {
         DefaultMutableTreeNode node = ((DefaultMutableTreeNode) tree.getLastSelectedPathComponent());
@@ -1854,6 +1953,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JMenuItem EditHostname;
     private javax.swing.JMenuItem EditReferenceOption;
     private javax.swing.JButton EditRiskButton;
+    private javax.swing.JLabel ExtraInfoLabel;
     private javax.swing.JTextField FileSize;
     private javax.swing.JTextField FileType;
     private javax.swing.JTree HostTree;
@@ -1863,6 +1963,7 @@ public class MainWindow extends javax.swing.JFrame {
     private javax.swing.JMenuItem LaunchInBrowser;
     private javax.swing.JList ListOfHosts;
     private javax.swing.JList ListOfOpenPorts;
+    private javax.swing.JMenuItem LookupCVE;
     private javax.swing.JPanel MainScreenBottomPanel;
     private javax.swing.JDialog ManageAffectedHosts;
     private javax.swing.JMenuItem MergeButton;
@@ -1999,75 +2100,75 @@ public class MainWindow extends javax.swing.JFrame {
         // Add actions into the Action Map.
         VulnDescriptionTextPane.getActionMap().put("Undo",
                 new AbstractAction("Undo") {
-                    public void actionPerformed(ActionEvent evt) {
-                        try {
-                            if (undo_manager.canUndo()) {
-                                undo_manager.undo();
-                            }
-                        } catch (CannotUndoException e) {
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (undo_manager.canUndo()) {
+                        undo_manager.undo();
                     }
-                });
+                } catch (CannotUndoException e) {
+                }
+            }
+        });
 
         VulnDescriptionTextPane.getActionMap().put("Redo",
                 new AbstractAction("Redo") {
-                    public void actionPerformed(ActionEvent evt) {
-                        try {
-                            if (undo_manager.canRedo()) {
-                                undo_manager.redo();
-                            }
-                        } catch (CannotRedoException e) {
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (undo_manager.canRedo()) {
+                        undo_manager.redo();
                     }
-                });
+                } catch (CannotRedoException e) {
+                }
+            }
+        });
 
         VulnRecommendationTextPane.getActionMap().put("Undo",
                 new AbstractAction("Undo") {
-                    public void actionPerformed(ActionEvent evt) {
-                        try {
-                            if (undo_manager.canUndo()) {
-                                undo_manager.undo();
-                            }
-                        } catch (CannotUndoException e) {
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (undo_manager.canUndo()) {
+                        undo_manager.undo();
                     }
-                });
+                } catch (CannotUndoException e) {
+                }
+            }
+        });
 
         VulnRecommendationTextPane.getActionMap().put("Redo",
                 new AbstractAction("Redo") {
-                    public void actionPerformed(ActionEvent evt) {
-                        try {
-                            if (undo_manager.canRedo()) {
-                                undo_manager.redo();
-                            }
-                        } catch (CannotRedoException e) {
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (undo_manager.canRedo()) {
+                        undo_manager.redo();
                     }
-                });
+                } catch (CannotRedoException e) {
+                }
+            }
+        });
 
         VulnTitleTextField.getActionMap().put("Undo",
                 new AbstractAction("Undo") {
-                    public void actionPerformed(ActionEvent evt) {
-                        try {
-                            if (undo_manager.canUndo()) {
-                                undo_manager.undo();
-                            }
-                        } catch (CannotUndoException e) {
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (undo_manager.canUndo()) {
+                        undo_manager.undo();
                     }
-                });
+                } catch (CannotUndoException e) {
+                }
+            }
+        });
 
         VulnTitleTextField.getActionMap().put("Redo",
                 new AbstractAction("Redo") {
-                    public void actionPerformed(ActionEvent evt) {
-                        try {
-                            if (undo_manager.canRedo()) {
-                                undo_manager.redo();
-                            }
-                        } catch (CannotRedoException e) {
-                        }
+            public void actionPerformed(ActionEvent evt) {
+                try {
+                    if (undo_manager.canRedo()) {
+                        undo_manager.redo();
                     }
-                });
+                } catch (CannotRedoException e) {
+                }
+            }
+        });
 
         // Add the key mappings
         VulnDescriptionTextPane.getInputMap().put(KeyStroke.getKeyStroke("control Z"), "Undo");
@@ -2374,6 +2475,55 @@ public class MainWindow extends javax.swing.JFrame {
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+    }
+
+    private void handleCVELookup(File save_file) {
+
+        final File sf = save_file;
+        // Best to do this as a background task it'll take time
+        Runnable r = new Runnable() {
+            public void run() {
+                HashSet cves = new HashSet();
+                // Find all selected vulns in the tree.
+                TreePath[] paths = VulnTree.getSelectionPaths();
+                for (int i = 0; i < paths.length; i++) {
+                    // Loop through them and merge all CVEs into the cves HashSet
+                    TreePath path = paths[i];
+                    DefaultMutableTreeNode node = (DefaultMutableTreeNode) path.getLastPathComponent();
+                    Object obj = node.getUserObject();
+                    if (obj instanceof Vulnerability) {
+                        Vulnerability vuln = (Vulnerability) obj;
+                        // add these references to the HashSet
+                        cves.addAll(vuln.getCVEReferences());
+                    }
+                }
+
+                // Get the answers from our local CSV file
+                CVEUtils cveu = new CVEUtils();
+                Vector answers = cveu.getCVEs(cves);
+
+                try {
+                    String[] headerrow = {"CVE ID", "Risk Score", "Summary"};
+                    // Write header column to file
+                    writeCSVLine(sf, headerrow);
+                    // Now get all the details and make a CSV for the user.
+                    Enumeration enums = answers.elements();
+                    while (enums.hasMoreElements()) {
+                        CVE c = (CVE) enums.nextElement();
+                        System.out.println(c.getCveId() + ":" + c.getRiskScore());
+                        writeCSVLine(sf, c.toStringArray());
+                    }
+
+                    // Open file in user's default programme
+                    Desktop.getDesktop().open(sf);
+
+                } catch (Exception ex) {
+                    JOptionPane.showMessageDialog(null, ex.getMessage());
+                }
+            }
+        };
+
+        new Thread(r).start();
     }
 
 }
