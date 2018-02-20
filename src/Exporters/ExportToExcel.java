@@ -17,9 +17,11 @@ package Exporters;
 
 import Models.Host;
 import Models.Vulnerability;
+import java.awt.Desktop;
 import java.io.File;
 import java.io.IOException;
 import java.util.Enumeration;
+import javax.swing.JOptionPane;
 import javax.swing.tree.DefaultMutableTreeNode;
 import jxl.Workbook;
 import jxl.format.UnderlineStyle;
@@ -207,11 +209,14 @@ public class ExportToExcel {
         // All sheets and cells added. Now write out the workbook
         workbook.write();
         workbook.close();
+        // Give feedback that the file was created.
+        JOptionPane.showMessageDialog(null, "Export to XLS successful", "Saved your file ok.", JOptionPane.INFORMATION_MESSAGE);
 
         try {
-            // try to pop this up
-            Process p = Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + outfile);
+            // try to open the file if we can.
+            Desktop.getDesktop().open(outfile);
         } catch (Exception ex) {
+            System.err.println("Some problem opening the XLS file.");
             ex.printStackTrace();
             // if we get here it is likely that the user is not on Windows or doesn't have a default XLS viewer
         }
