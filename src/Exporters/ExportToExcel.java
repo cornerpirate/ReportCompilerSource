@@ -12,9 +12,10 @@
  * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
  * See the License for the specific language governing permissions and
  * limitations under the License.
- */ 
+ */
 package Exporters;
 
+import Models.Host;
 import Models.Vulnerability;
 import java.io.File;
 import java.io.IOException;
@@ -28,6 +29,7 @@ import jxl.write.WritableFont;
 import jxl.write.WritableSheet;
 import jxl.write.WritableWorkbook;
 import jxl.write.WriteException;
+import jxl.write.WritableHyperlink;
 
 /**
  *
@@ -127,12 +129,10 @@ public class ExportToExcel {
 
             if (obj instanceof Vulnerability) {
                 Vulnerability vuln = (Vulnerability) obj;
-                //System.out.println(vuln) ;
 
-                //[Index,
+                //Index,
                 Label index_label = new Label(0, row, "" + index, data_format);
                 sheet.addCell(index_label);
-                index = index + 1;
 
                 //Vuln Title, 
                 Label title_label = new Label(1, row, vuln.getTitle(), data_format);
@@ -166,9 +166,31 @@ public class ExportToExcel {
                 Label recommendations_label = new Label(5, row, vuln.getRecommendation(), data_format);
                 sheet.addCell(recommendations_label);
                 //Affected Hosts, 
-                Label hosts_label = new Label(6, row, vuln.getAffectedHostsForExcel(), data_format);
-                sheet.addCell(hosts_label);
 
+                WritableSheet hosts_sheet = workbook.createSheet(index + "", index);
+                index = index + 1;
+
+                // There is a max length for excel cells.
+                // If you have one vuln on hundreds of hosts then you will hit it.
+                // So I have made the affected hosts go into their own sheet.
+                int r = 0;
+                Label title = new Label(0, r, vuln.getTitle(), data_format);
+                hosts_sheet.addCell(title);
+                hosts_sheet.setColumnView(0, 60);
+                Enumeration hosts = vuln.getAffectedHosts().elements();
+                while (hosts.hasMoreElements()) {
+                    r = r + 1;
+                    Host h = (Host) hosts.nextElement();
+                    Label hst_label = new Label(0, r, h.getHostForExcel(), data_format);
+                    hosts_sheet.addCell(hst_label) ;
+                }
+
+                //Label hosts_label = new Label(6, row, vuln.getAffectedHostsForExcel(), data_format);
+                // Insert Link to the affected host
+                WritableHyperlink link = new WritableHyperlink(6, row, "Link to Affected", hosts_sheet, 0,0) ;
+                sheet.addHyperlink(link);
+                
+                //sheet.addCell(hosts_label);
                 row = row + 1;
                 // dynamically fix the width of the title column
                 if (longest_title <= vuln.getTitle().length()) {
@@ -186,7 +208,12 @@ public class ExportToExcel {
         workbook.write();
         workbook.close();
 
-        // try to pop this up
-        Process p = Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + outfile);
+        try {
+            // try to pop this up
+            Process p = Runtime.getRuntime().exec("rundll32 url.dll,FileProtocolHandler " + outfile);
+        } catch (Exception ex) {
+            ex.printStackTrace();
+            // if we get here it is likely that the user is not on Windows or doesn't have a default XLS viewer
+        }
     }
 }
