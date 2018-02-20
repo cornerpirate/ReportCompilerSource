@@ -850,7 +850,7 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu3.setText("Export");
 
         jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
-        jMenuItem8.setText("Excel Vulnerability List");
+        jMenuItem8.setText("Excel XLS Format");
         jMenuItem8.setToolTipText("This can be used to send a high level debrief to clients in a spreadsheet format. Report Compiler also imports vulnerabilities back from these excel files if necessary.");
         jMenuItem8.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
