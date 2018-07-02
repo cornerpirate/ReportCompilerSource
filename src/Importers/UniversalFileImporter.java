@@ -36,6 +36,7 @@ public class UniversalFileImporter {
     final ImportReportCompiler importrc = new ImportReportCompiler();
     final BurpImporter burpim = new BurpImporter();
     final SurecheckImporter surecheckim = new SurecheckImporter();
+    final NipperCSVImporter nipperCSVim = new NipperCSVImporter();
 
     public String file_type = null;
 
@@ -70,13 +71,17 @@ public class UniversalFileImporter {
             System.out.println("Is a Surecheck XML file");
             file_type = "Surecheck";
             return file_type;
+        } else if (nipperCSVim.isValid(importingFile)) {
+            System.out.println("Is a Nipper CSV file");
+            file_type = "NipperCSV";
+            return file_type;
         }
 
         String message = "Did not understand that file type, cannot import that.";
         String title = "Cannot Import File";
         // go through all the importers we have and see if we can cater for it
 
-        JOptionPane.showMessageDialog(null, message,title,JOptionPane.ERROR_MESSAGE);
+        JOptionPane.showMessageDialog(null, message, title, JOptionPane.ERROR_MESSAGE);
 
         System.out.println("==getFileType():" + title);
         return fileType;
@@ -84,8 +89,10 @@ public class UniversalFileImporter {
 
     /**
      * This is responsible for calling the correct readFile method.
+     *
      * @param importingFile
-     * @return DefaultMutableTreeNode - representing the tree of vulns in the file
+     * @return DefaultMutableTreeNode - representing the tree of vulns in the
+     * file
      */
     public DefaultMutableTreeNode readFile(File importingFile) {
 
@@ -104,6 +111,8 @@ public class UniversalFileImporter {
             root = burpim.readFile(importingFile);
         } else if (ftype.equalsIgnoreCase("Surecheck")) {
             root = surecheckim.readFile(importingFile);
+        } else if (ftype.equalsIgnoreCase("NipperCSV")) {
+            root = nipperCSVim.readFile(importingFile);
         }
 
         // Optionally we need to check for existing items in the VulnTree 
