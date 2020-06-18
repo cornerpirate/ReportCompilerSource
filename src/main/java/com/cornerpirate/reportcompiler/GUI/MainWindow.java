@@ -85,7 +85,6 @@ import javax.swing.tree.TreePath;
 import javax.swing.undo.CannotRedoException;
 import javax.swing.undo.CannotUndoException;
 import javax.swing.undo.UndoManager;
-import jxl.write.WriteException;
 import org.apache.commons.csv.CSVFormat;
 import org.apache.commons.csv.CSVPrinter;
 
@@ -1171,13 +1170,10 @@ public class MainWindow extends javax.swing.JFrame {
                 ExportToExcel excelOut = new ExportToExcel();
                 try {
                     excelOut.writeExcel(save_file, root);
-                } catch (IOException ex) {
+                } catch (Exception ex) {
                     ex.printStackTrace();
                     JOptionPane.showMessageDialog(null, ex);
-                } catch (WriteException ex) {
-                    ex.printStackTrace();
-                    JOptionPane.showMessageDialog(null, ex);
-                }
+                } 
 
             }
 

@@ -2,3 +2,5 @@
 /build/
 /dist/
 /target/
+dependency-check-report.html
+UserPreferences.properties
