@@ -345,7 +345,6 @@ public class NessusV2XMLImporter implements ImporterInterface {
                     }
                     
                     // Clean up description
-                    System.out.println(vuln.getTitle());
                     String all_text = vuln.getDescription() ;
                     String solution = "None Provided";
                     try {
