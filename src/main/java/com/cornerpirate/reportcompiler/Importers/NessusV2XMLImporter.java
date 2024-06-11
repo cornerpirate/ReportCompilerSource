@@ -112,6 +112,8 @@ public class NessusV2XMLImporter implements ImporterInterface {
             Logger.getLogger(NessusV2XMLImporter.class.getName()).log(Level.SEVERE, null, ex);
         } catch (IOException ex) {
             Logger.getLogger(NessusV2XMLImporter.class.getName()).log(Level.SEVERE, null, ex);
+        } catch(Exception ex) {
+            Logger.getLogger(NessusV2XMLImporter.class.getName()).log(Level.SEVERE, null, ex);
         }
 
         return root;
@@ -164,6 +166,8 @@ public class NessusV2XMLImporter implements ImporterInterface {
     }
 
     private Vector getVulns(NodeList hosts_node_list) {
+        // System.out.println("==NessusV2XMLImporter=getVulns()");
+
         Vector vulns = new Vector();
         // Key=Plugin ID, Value=Vulnerability Object
         HashMap vulnsMap = new HashMap();
@@ -208,6 +212,7 @@ public class NessusV2XMLImporter implements ImporterInterface {
     }
 
     private Vector getVulnsForHost(Host host, Node reportHostNode) {
+        //System.out.println("==NessusV2XMLImporter=getVulnsForHost()");
 
         Vector vulns = new Vector();
         NodeList children = reportHostNode.getChildNodes();
@@ -252,7 +257,9 @@ public class NessusV2XMLImporter implements ImporterInterface {
 
                         } else if (nodeName.equalsIgnoreCase("cm:compliance-result")) {
                             vuln.setNessus_compliance_result(nodeValue);
-                        } else if (nodeName.equalsIgnoreCase("risk_factor")) {
+                        } else if (nodeName.equalsIgnoreCase("cm:compliance-info")) {
+                            vuln.setDescription(nodeValue);
+                        }else if (nodeName.equalsIgnoreCase("risk_factor")) {
                             vuln.setRisk_category(nodeValue);
                         } else if (nodeName.equalsIgnoreCase("cvss_vector")) {
                             vuln.setIs_custom_risk(false); // modify it
@@ -338,13 +345,21 @@ public class NessusV2XMLImporter implements ImporterInterface {
                     }
                     
                     // Clean up description
+                    System.out.println(vuln.getTitle());
                     String all_text = vuln.getDescription() ;
-                    String solution = all_text.substring(all_text.indexOf("Solution : ") + "Solution : ".length());
+                    String solution = "None Provided";
+                    try {
+                        // Apparently some compliance findings have no solution
+                        if (all_text.contains("Solution")) {
+                            solution = all_text.substring(all_text.indexOf("Solution : ") + "Solution : ".length());
+                        }
+                    } catch(Exception ex) {
+                        // Do nothing we just want to allow it
+                        //Logger.getLogger(NessusV2XMLImporter.class.getName()).log(Level.SEVERE, null, ex);
+                    } 
                     vuln.setRecommendation(solution);
                     
-
                 }
-
                 // We have to drop ones where the plugin was "0" because they don't have any child tags. Maybe useful for port scans.
                 if (vuln.getImport_tool_id().equalsIgnoreCase("0") != true) {
                     vulns.addElement(vuln);
