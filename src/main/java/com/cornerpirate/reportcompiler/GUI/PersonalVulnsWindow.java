@@ -43,6 +43,7 @@ import java.util.Properties;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -67,6 +68,9 @@ public class PersonalVulnsWindow extends javax.swing.JFrame {
     protected VulnDescriptionDocumentListener descriptionDocumentListener;
     protected VulnRecommendationDocumentListener recommendationDocumentListener;
 
+    
+    // Added to change from default Java logo.
+    ImageIcon logo = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
     /**
      * Creates new form PersonalVulnsWindow
      */
@@ -74,6 +78,9 @@ public class PersonalVulnsWindow extends javax.swing.JFrame {
         //super(parent, modal);
         initComponents();
 
+        // set the icon 
+        this.setIconImage(logo.getImage());        
+        
         // Create the document Listeners
         this.titleDocumentListener = new VulnTitleDocumentListener(PersonalVulnsTitle, PersonalVulnsTree, this);
         this.descriptionDocumentListener = new VulnDescriptionDocumentListener(PersonalVulnDescription, PersonalVulnsTree, this);

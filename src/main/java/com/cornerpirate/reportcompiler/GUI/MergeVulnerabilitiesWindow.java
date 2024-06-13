@@ -35,6 +35,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Vector;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JLabel;
 import javax.swing.JList;
 import javax.swing.JOptionPane;
@@ -55,6 +56,9 @@ public class MergeVulnerabilitiesWindow extends javax.swing.JFrame {
 
     JTree VulnTree;
     final Helper helper = new Helper();
+    
+    // Added to change from default Java logo.
+    ImageIcon logo = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
 
     /**
      * Creates new form MergeVulnerabilitiesWindow
@@ -63,6 +67,9 @@ public class MergeVulnerabilitiesWindow extends javax.swing.JFrame {
         initComponents();
         this.VulnTree = vt;
 
+        // set the icon 
+        this.setIconImage(logo.getImage());        
+        
         // Setup document listener
         setupDocumentListeners() ;
         

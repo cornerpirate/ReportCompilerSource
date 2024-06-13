@@ -21,6 +21,7 @@ import com.cornerpirate.reportcompiler.Utils.Helper;
 import com.cornerpirate.reportcompiler.Utils.TreeUtils;
 import java.awt.Font;
 import java.util.Enumeration;
+import javax.swing.ImageIcon;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
 import javax.swing.tree.DefaultMutableTreeNode;
@@ -38,6 +39,9 @@ public class CVSSv2Calculator extends javax.swing.JFrame {
     protected JTree vuln_tree;
     protected DefaultMutableTreeNode vuln_node;
     final Helper helper = new Helper();
+    
+    // Added to change from default Java logo.
+    ImageIcon logo = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
 
     /**
      * Creates new form CVSSv2Calculator
@@ -45,6 +49,10 @@ public class CVSSv2Calculator extends javax.swing.JFrame {
     public CVSSv2Calculator(java.awt.Frame parent, boolean modal, JTree tree, DefaultMutableTreeNode vuln_node) {
         //super(parent, modal);
         initComponents();
+        
+        // set the icon 
+        this.setIconImage(logo.getImage());
+        
         this.vuln_tree = tree;
         this.vuln_node = vuln_node;
         // Remove Action Listener

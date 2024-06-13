@@ -30,6 +30,7 @@ import java.awt.Font;
 import java.io.File;
 import java.util.Enumeration;
 import java.util.Vector;
+import javax.swing.ImageIcon;
 import javax.swing.JFileChooser;
 import javax.swing.JOptionPane;
 import javax.swing.JTree;
@@ -51,6 +52,9 @@ public class ShowNotesWindow extends javax.swing.JFrame {
     JTree vulnTree;
     protected String start_dir;
     final Helper helper = new Helper();
+    
+    // Added to change from default Java logo.
+    ImageIcon logo = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
 
     /**
      * Creates new form ShowNotesWindow with a particular host selected
@@ -59,6 +63,9 @@ public class ShowNotesWindow extends javax.swing.JFrame {
         //super(parent, modal);
         initComponents();
 
+        // set the icon 
+        this.setIconImage(logo.getImage());        
+        
         DefaultSyntaxKit.initKit();
         PythonText.setContentType("text/python");
 
@@ -399,14 +406,10 @@ public class ShowNotesWindow extends javax.swing.JFrame {
                     jScrollPane2.getVerticalScrollBar().setValue(0);
                 }
             });
-
         }
-
     }//GEN-LAST:event_NotesTreeValueChanged
 
     private void CompileNotesButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_CompileNotesButtonActionPerformed
-
-        System.out.println("Compile Notes Button Pressed") ;
 
         JFileChooser importFileChooser = new JFileChooser();
         importFileChooser.setCurrentDirectory(new File(this.start_dir));
@@ -429,32 +432,14 @@ public class ShowNotesWindow extends javax.swing.JFrame {
 
     private void RunButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_RunButtonActionPerformed
         this.PythonOutput.setText("");
-
         String python = this.PythonText.getText();
-        //python.replaceAll("\t", "    ");
-
-        /* 
-         try {
-         File f = new File("filename.txt") ;
-         PrintWriter out = new PrintWriter(f);
-         out.write(python);
-         out.close();
-         // open it
-         Desktop.getDesktop().open(f) ;
-         } catch (Exception ex) {
-         ex.printStackTrace();
-         }
-         */
         PythonInterpreter interp = new PythonInterpreter();
-
         interp.setIn(System.in);
         interp.setOut(System.out);
-
         interp.exec(python);
     }//GEN-LAST:event_RunButtonActionPerformed
 
     private void ScrapeButtonActionPerformed(java.awt.event.ActionEvent evt) {//GEN-FIRST:event_ScrapeButtonActionPerformed
-        System.out.println("Scrape button pressed");
         String answers_text = PythonOutput.getText();
         String start = "====HOST";
         String end = "====CLOSEHOST====";
@@ -471,7 +456,7 @@ public class ShowNotesWindow extends javax.swing.JFrame {
                 String port = port_proto.split("/")[0];
                 String protocol = port_proto.split("/")[1];
                 // Get the 'output' text
-                String output = answer.substring(answer.indexOf("===="), answer.indexOf(end));
+                String output = answer.substring(answer.indexOf("====")+4, answer.indexOf(end));
                 // Create host
                 Host thishost = new Host();
                 thishost.setIp_address(ip);
@@ -487,10 +472,8 @@ public class ShowNotesWindow extends javax.swing.JFrame {
                     Vulnerability vuln = (Vulnerability) obj;
                     vuln.replaceNotes(thishost);
                 }
-
             }
         }
-
     }//GEN-LAST:event_ScrapeButtonActionPerformed
 
     private void formWindowClosing(java.awt.event.WindowEvent evt) {//GEN-FIRST:event_formWindowClosing
@@ -579,6 +562,4 @@ public class ShowNotesWindow extends javax.swing.JFrame {
 
         return answer;
     }
-
-
 }

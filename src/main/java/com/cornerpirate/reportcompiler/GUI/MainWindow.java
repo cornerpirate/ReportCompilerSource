@@ -63,6 +63,7 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.DefaultListModel;
+import javax.swing.ImageIcon;
 import javax.swing.JComponent;
 import javax.swing.JFileChooser;
 import javax.swing.JLabel;
@@ -109,12 +110,19 @@ public class MainWindow extends javax.swing.JFrame {
     protected VulnTitleDocumentListener titleDocumentListener;
     protected VulnDescriptionDocumentListener descriptionDocumentListener;
     protected VulnRecommendationDocumentListener recommendationDocumentListener;
+    
+    // Added to change from default Java logo.
+    ImageIcon logo = new ImageIcon(getClass().getClassLoader().getResource("icon.png"));
 
     /**
      * Creates new form MainWindow
      */
     public MainWindow() {
         initComponents();
+        
+        // set the icon 
+        this.setIconImage(logo.getImage());
+        
         fileChooser.setMultiSelectionEnabled(true);
 
         // Create the document Listeners
@@ -747,7 +755,7 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu1.setMnemonic('F');
         jMenu1.setText("File");
 
-        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem3.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_N, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem3.setText("New (Clear Tree)");
         jMenuItem3.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -756,7 +764,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem3);
 
-        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem4.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_O, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem4.setText("Open");
         jMenuItem4.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -765,7 +773,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jMenu1.add(jMenuItem4);
 
-        jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem5.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_S, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem5.setText("Save");
         jMenuItem5.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -796,7 +804,7 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu2.setText("Vulnerabilities");
         jMenu2.setToolTipText("All vulnerability related operations. Import from a tool, create an entirely new one etc");
 
-        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem1.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_I, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem1.setText("Import from Tool");
         jMenuItem1.setToolTipText("Select one or more files to import simultaneously. ");
         jMenuItem1.addActionListener(new java.awt.event.ActionListener() {
@@ -806,7 +814,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem1);
 
-        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_INSERT, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem2.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_INSERT, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem2.setText("Create New Vulnerability");
         jMenuItem2.setToolTipText("Add a new vulnerability to your test. When finished you can save it to your Personal Vulnerability database by right clicking on the issue in the tree");
         jMenuItem2.addActionListener(new java.awt.event.ActionListener() {
@@ -816,7 +824,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jMenu2.add(jMenuItem2);
 
-        jMenuItem7.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem7.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_M, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem7.setText("Manage Personal Vulns");
         jMenuItem7.setToolTipText("Allows you to delete or edit the text for vulnerabilities in your Personal Database");
         jMenuItem7.addActionListener(new java.awt.event.ActionListener() {
@@ -848,7 +856,7 @@ public class MainWindow extends javax.swing.JFrame {
         jMenu3.setMnemonic('E');
         jMenu3.setText("Export");
 
-        jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.SHIFT_MASK | java.awt.event.InputEvent.CTRL_MASK));
+        jMenuItem8.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_E, java.awt.event.InputEvent.SHIFT_DOWN_MASK | java.awt.event.InputEvent.CTRL_DOWN_MASK));
         jMenuItem8.setText("Excel XLS Format");
         jMenuItem8.setToolTipText("This can be used to send a high level debrief to clients in a spreadsheet format. Report Compiler also imports vulnerabilities back from these excel files if necessary.");
         jMenuItem8.addActionListener(new java.awt.event.ActionListener() {
@@ -862,7 +870,7 @@ public class MainWindow extends javax.swing.JFrame {
 
         jMenu5.setText("Options");
 
-        increaseFont.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_EQUALS, java.awt.event.InputEvent.CTRL_MASK));
+        increaseFont.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_EQUALS, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         increaseFont.setText("Increase Font");
         increaseFont.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
@@ -871,7 +879,7 @@ public class MainWindow extends javax.swing.JFrame {
         });
         jMenu5.add(increaseFont);
 
-        decreaseFont.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_MINUS, java.awt.event.InputEvent.CTRL_MASK));
+        decreaseFont.setAccelerator(javax.swing.KeyStroke.getKeyStroke(java.awt.event.KeyEvent.VK_MINUS, java.awt.event.InputEvent.CTRL_DOWN_MASK));
         decreaseFont.setText("Decrease Font");
         decreaseFont.addActionListener(new java.awt.event.ActionListener() {
             public void actionPerformed(java.awt.event.ActionEvent evt) {
